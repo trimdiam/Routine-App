@@ -6,12 +6,13 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.13.0/firebas
 import { getAuth } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", // ← Replace with actual key
+  apiKey: "AIzaSyBXq3fe0uY8UB7-uLGzGIIvZOQf8YjNqaM",
   authDomain: "st-francis-school-a3e7e.firebaseapp.com",
   projectId: "st-francis-school-a3e7e",
-  storageBucket: "st-francis-school-a3e7e.appspot.com",
-  messagingSenderId: "XXXXXXXXXXXX",   // ← Replace with actual sender ID
-  appId: "1:XXXXXXXXXXXX:web:XXXXXXXXXXXXXXXX" // ← Replace with actual app ID
+  storageBucket: "st-francis-school-a3e7e.firebasestorage.app",
+  messagingSenderId: "180123372524",
+  appId: "1:180123372524:web:caed0f2a44d35f19d90ec9",
+  measurementId: "G-TD628HY5XY"
 };
 
 // Guard: do not re-initialize if main portal already initialized Firebase
