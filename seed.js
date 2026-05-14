@@ -9,12 +9,13 @@ import {
 
 // ── Firebase init (same guard as firebase.js) ──
 const firebaseConfig = {
-  apiKey: "AIzaSyAXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  apiKey: "AIzaSyBXq3fe0uY8UB7-uLGzGIIvZOQf8YjNqaM",
   authDomain: "st-francis-school-a3e7e.firebaseapp.com",
   projectId: "st-francis-school-a3e7e",
-  storageBucket: "st-francis-school-a3e7e.appspot.com",
-  messagingSenderId: "XXXXXXXXXXXX",
-  appId: "1:XXXXXXXXXXXX:web:XXXXXXXXXXXXXXXX"
+  storageBucket: "st-francis-school-a3e7e.firebasestorage.app",
+  messagingSenderId: "180123372524",
+  appId: "1:180123372524:web:caed0f2a44d35f19d90ec9",
+  measurementId: "G-TD628HY5XY"
 };
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
