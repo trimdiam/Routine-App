@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Class Routine — St. Francis de Sales School, Laitkor" />
+  <title>SFS Class Routine</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23c9a227'/><text x='16' y='23' text-anchor='middle' font-size='18' font-family='Georgia' font-weight='bold' fill='%230a0f2e'>S</text></svg>" />
+</head>
+<body>
+
+<!-- ── Login Screen ── -->
+<div id="login-screen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo">S</div>
+    <h1 class="login-title">Admin Panel</h1>
+    <p class="login-sub">St. Francis de Sales School, Laitkor</p>
+    <div class="form-group">
+      <label class="form-label" for="login-password">Password</label>
+      <input
+        class="sfs-input"
+        type="password"
+        id="login-password"
+        placeholder="Enter admin password"
+        style="width:100%;"
+        autocomplete="current-password"
+      />
+    </div>
+    <button class="btn btn-primary" id="login-btn" style="width:100%;">
+      Sign In
+    </button>
+    <p class="login-error" id="login-error"></p>
+    <button class="btn btn-ghost" id="login-back-btn" style="margin-top:1rem; width:100%; font-size:0.8rem;">
+      ← Back to View
+    </button>
+  </div>
+</div>
+
+<!-- ── Main App ── -->
+<div id="app" style="display:none;">
+
+  <!-- Header -->
+  <header id="app-header">
+    <div class="header-logo">
+      <div class="logo-icon">S</div>
+      <div class="logo-text">
+        <span class="logo-title">SFS Routine</span>
+        <span class="logo-sub">Laitkor</span>
+      </div>
+    </div>
+
+    <nav class="header-nav" id="header-nav">
+      <button class="header-nav-btn active" data-section="class">
+        📋 Class View
+      </button>
+      <button class="header-nav-btn" data-section="teacher">
+        👤 Teacher View
+      </button>
+      <button class="header-nav-btn" data-section="master">
+        📊 Full Day
+      </button>
+      <button class="header-nav-btn" id="admin-nav-btn" data-section="admin">
+        ⚙️ Admin
+      </button>
+    </nav>
+
+    <div class="header-day-badge" id="header-day-badge">Day —</div>
+
+    <a href="../index.html" class="back-portal-link" title="Back to Portal">
+      ← <span>Portal</span>
+    </a>
+
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">☰</button>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
+
+    <!-- ══════════════════════════════════════
+         SECTION: Class Routine View
+    ══════════════════════════════════════ -->
+    <section class="page-section active" id="section-class">
+      <div class="section-header">
+        <h2>Class Routine</h2>
+        <p>Select a class to view its schedule for the active day.</p>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <div class="glass-card-title">
+            <div class="icon">📋</div>
+            <div>
+              <h3 id="class-view-title">Select a Class</h3>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;" id="class-view-subtitle"></div>
+            </div>
+          </div>
+          <div class="control-row">
+            <select class="sfs-select" id="class-select">
+              <option value="">— Select Class —</option>
+              <option value="I">Class I</option>
+              <option value="II">Class II</option>
+              <option value="III">Class III</option>
+              <option value="IV">Class IV</option>
+              <option value="V">Class V</option>
+              <option value="VI">Class VI</option>
+              <option value="VII">Class VII</option>
+              <option value="VIII">Class VIII</option>
+              <option value="IX">Class IX</option>
+              <option value="X">Class X</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="class-print-btn" title="Print routine" style="display:none;">🖨️ Print</button>
+          </div>
+        </div>
+
+        <!-- Day selector -->
+        <div class="day-pills" id="class-day-pills" style="margin-bottom:1.25rem;">
+          <button class="day-pill active" data-day="1">Day 1</button>
+          <button class="day-pill" data-day="2">Day 2</button>
+          <button class="day-pill" data-day="3">Day 3</button>
+          <button class="day-pill" data-day="4">Day 4</button>
+          <button class="day-pill" data-day="5">Day 5</button>
+          <button class="day-pill" data-day="6">Day 6</button>
+          <button class="day-pill" data-day="7">Day 7</button>
+        </div>
+
+        <!-- Print header (hidden on screen) -->
+        <span class="print-title" id="print-title"></span>
+        <span class="print-subtitle" id="print-subtitle">St. Francis de Sales School, Laitkor — Class Routine</span>
+
+        <!-- Table -->
+        <div id="class-view-body">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>Select a class above to view the routine.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+         SECTION: Teacher Schedule View
+    ══════════════════════════════════════ -->
+    <section class="page-section" id="section-teacher">
+      <div class="section-header">
+        <h2>Teacher Schedule</h2>
+        <p>Select a teacher to view their personal timetable.</p>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <div class="glass-card-title">
+            <div class="icon">👤</div>
+            <div>
+              <h3 id="teacher-view-title">Select a Teacher</h3>
+              <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;" id="teacher-view-subtitle"></div>
+            </div>
+          </div>
+          <div class="control-row">
+            <select class="sfs-select" id="teacher-select">
+              <option value="">— Select Teacher —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Day selector -->
+        <div class="day-pills" id="teacher-day-pills" style="margin-bottom:1.25rem;">
+          <button class="day-pill active" data-day="1">Day 1</button>
+          <button class="day-pill" data-day="2">Day 2</button>
+          <button class="day-pill" data-day="3">Day 3</button>
+          <button class="day-pill" data-day="4">Day 4</button>
+          <button class="day-pill" data-day="5">Day 5</button>
+          <button class="day-pill" data-day="6">Day 6</button>
+          <button class="day-pill" data-day="7">Day 7</button>
+        </div>
+
+        <!-- Table -->
+        <div id="teacher-view-body">
+          <div class="empty-state">
+            <div class="empty-icon">👤</div>
+            <p>Select a teacher above to view their schedule.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+         SECTION: Full Day Master View
+    ══════════════════════════════════════ -->
+    <section class="page-section" id="section-master">
+      <div class="section-header">
+        <h2>Full Day Overview</h2>
+        <p>Complete matrix of all classes and periods for the selected day.</p>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <div class="glass-card-title">
+            <div class="icon">📊</div>
+            <h3 id="master-view-title">Day 1 — All Classes</h3>
+          </div>
+          <div class="control-row">
+            <div class="day-pills" id="master-day-pills">
+              <button class="day-pill active" data-day="1">Day 1</button>
+              <button class="day-pill" data-day="2">Day 2</button>
+              <button class="day-pill" data-day="3">Day 3</button>
+              <button class="day-pill" data-day="4">Day 4</button>
+              <button class="day-pill" data-day="5">Day 5</button>
+              <button class="day-pill" data-day="6">Day 6</button>
+              <button class="day-pill" data-day="7">Day 7</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="control-row" style="margin-bottom:1rem; font-size:0.78rem; color:var(--text-muted);">
+          <span>Legend:</span>
+          <span class="badge badge-dual">English I/II</span>
+          <span class="badge badge-split">Value / Cate Split</span>
+        </div>
+
+        <!-- Grid -->
+        <div id="master-view-body">
+          <div class="empty-state">
+            <div class="empty-icon">📊</div>
+            <p>Loading overview...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
+         SECTION: Admin Panel
+    ══════════════════════════════════════ -->
+    <section class="page-section" id="section-admin">
+      <div class="section-header">
+        <h2>Admin Panel</h2>
+        <p>Manage routines, teachers, subjects, and school day settings.</p>
+      </div>
+
+      <!-- Admin tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-admin-tab="day">📅 Day Control</button>
+        <button class="admin-tab" data-admin-tab="timings">⏰ Timings</button>
+        <button class="admin-tab" data-admin-tab="teachers">👥 Teachers</button>
+        <button class="admin-tab" data-admin-tab="subjects">📚 Subjects</button>
+        <button class="admin-tab" data-admin-tab="routine">📝 Routine Editor</button>
+        <button class="admin-tab" data-admin-tab="seed">🌱 Seed DB</button>
+      </div>
+
+      <!-- ── Admin: Day Control ── -->
+      <div class="admin-tab-panel active" id="admin-panel-day">
+        <div class="day-control-card" style="max-width:400px; margin:0 auto 1.5rem;">
+          <p style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--gold-400); font-weight:600;">Current Active Day</p>
+          <div class="current-day-display" id="admin-current-day">—</div>
+          <p class="day-last-updated" id="admin-day-last-updated">Last updated: —</p>
+          <div class="control-row" style="justify-content:center; margin-top:1.25rem; flex-wrap:wrap; gap:0.5rem;">
+            <button class="btn btn-primary" id="admin-advance-day">▶ Advance to Next Day</button>
+            <button class="btn btn-secondary" id="admin-set-day-btn">Set Day Manually</button>
+          </div>
+        </div>
+
+        <div class="glass-card" style="max-width:400px; margin:0 auto;">
+          <h4 style="margin-bottom:1rem; color:var(--gold-300);">Set Day Manually</h4>
+          <div class="day-pills" id="admin-day-set-pills">
+            <button class="day-pill" data-day="1">Day 1</button>
+            <button class="day-pill" data-day="2">Day 2</button>
+            <button class="day-pill" data-day="3">Day 3</button>
+            <button class="day-pill" data-day="4">Day 4</button>
+            <button class="day-pill" data-day="5">Day 5</button>
+            <button class="day-pill" data-day="6">Day 6</button>
+            <button class="day-pill" data-day="7">Day 7</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Admin: Period Timings ── -->
+      <div class="admin-tab-panel" id="admin-panel-timings" style="display:none;">
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <div class="glass-card-title">
+              <div class="icon">⏰</div>
+              <h3>Period Timings</h3>
+            </div>
+            <button class="btn btn-primary btn-sm" id="save-timings-btn">Save Timings</button>
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1.25rem;">
+            Set start and end times for each period. Leave blank to show placeholder (--:-- to --:--).
+          </p>
+          <div class="period-timings-grid" id="timings-editor">
+            <!-- Rendered by admin.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Admin: Teachers ── -->
+      <div class="admin-tab-panel" id="admin-panel-teachers" style="display:none;">
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <div class="glass-card-title">
+              <div class="icon">👥</div>
+              <h3>Teacher Directory</h3>
+            </div>
+            <button class="btn btn-primary btn-sm" id="add-teacher-btn">+ Add Teacher</button>
+          </div>
+          <div class="teacher-grid" id="teachers-list">
+            <!-- Rendered by admin.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Admin: Subjects ── -->
+      <div class="admin-tab-panel" id="admin-panel-subjects" style="display:none;">
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <div class="glass-card-title">
+              <div class="icon">📚</div>
+              <h3>Subject List</h3>
+            </div>
+            <button class="btn btn-primary btn-sm" id="add-subject-btn">+ Add Subject</button>
+          </div>
+          <div class="subject-list" id="subjects-list">
+            <!-- Rendered by admin.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Admin: Routine Editor ── -->
+      <div class="admin-tab-panel" id="admin-panel-routine" style="display:none;">
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <div class="glass-card-title">
+              <div class="icon">📝</div>
+              <h3>Routine Editor</h3>
+            </div>
+            <div class="control-row">
+              <select class="sfs-select" id="editor-class-select">
+                <option value="">— Select Class —</option>
+                <option value="I">Class I</option>
+                <option value="II">Class II</option>
+                <option value="III">Class III</option>
+                <option value="IV">Class IV</option>
+                <option value="V">Class V</option>
+                <option value="VI">Class VI</option>
+                <option value="VII">Class VII</option>
+                <option value="VIII">Class VIII</option>
+                <option value="IX">Class IX</option>
+                <option value="X">Class X</option>
+              </select>
+            </div>
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:1.25rem;">
+            Click any cell to edit that period's subject and teacher assignment.
+          </p>
+          <div id="routine-editor-body">
+            <div class="empty-state">
+              <div class="empty-icon">📝</div>
+              <p>Select a class above to edit its routine.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Admin: Seed DB ── -->
+      <div class="admin-tab-panel" id="admin-panel-seed" style="display:none;">
+        <div class="glass-card" style="max-width:500px;">
+          <div class="glass-card-header">
+            <div class="glass-card-title">
+              <div class="icon">🌱</div>
+              <h3>Seed Database</h3>
+            </div>
+          </div>
+          <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1rem;">
+            This will populate Firestore with all teacher data, subjects, and the complete
+            7-day routine. The operation is <strong style="color:var(--gold-300);">idempotent</strong> —
+            safe to run multiple times without duplicating data.
+          </p>
+          <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius-sm); padding:0.85rem 1rem; margin-bottom:1.25rem; font-size:0.82rem; color:var(--badge-split-text);">
+            ⚠️ This will overwrite any manual edits made to the seeded records. Only run this for initial setup or a full reset.
+          </div>
+          <button class="btn btn-primary" id="seed-db-btn">🌱 Run Seed Script</button>
+          <div id="seed-progress" style="margin-top:1rem; font-size:0.82rem; color:var(--text-muted);"></div>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div style="margin-top:2rem; text-align:right;">
+        <button class="btn btn-ghost btn-sm" id="admin-logout-btn">🔒 Lock Admin</button>
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- ── Toast Container ── -->
+<div id="toast-container"></div>
+
+<!-- ── Slot Edit Modal ── -->
+<div class="modal-overlay" id="slot-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="slot-modal-title">Edit Slot</span>
+      <button class="modal-close" id="slot-modal-close">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="slot-type-select">Slot Type <span>*</span></label>
+      <select class="sfs-input" id="slot-type-select" style="width:100%;">
+        <option value="regular">Regular</option>
+        <option value="dual-subject">Dual Subject (English I/II)</option>
+        <option value="value-cate-split">Value Ed. / Catechism Split</option>
+      </select>
+    </div>
+
+    <div id="slot-form-regular">
+      <div class="form-group">
+        <label class="form-label" for="slot-subject-select">Subject <span>*</span></label>
+        <select class="sfs-input" id="slot-subject-select" style="width:100%;">
+          <option value="">— Select Subject —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="slot-teacher-select">Teacher <span>*</span></label>
+        <select class="sfs-input" id="slot-teacher-select" style="width:100%;">
+          <option value="">— Select Teacher —</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="slot-form-split" style="display:none;">
+      <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">
+        Two parallel sessions run simultaneously. Assign one teacher per track.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Value Education Teacher (Room 9)</label>
+        <select class="sfs-input" id="slot-value-teacher" style="width:100%;">
+          <option value="">— Select Teacher —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Catechism Teacher (Room 10)</label>
+        <select class="sfs-input" id="slot-cate-teacher" style="width:100%;">
+          <option value="">— Select Teacher —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Involved Classes</label>
+        <select class="sfs-input" id="slot-pool-select" style="width:100%;">
+          <option value="IX,X">Senior Pool — Class IX + X</option>
+          <option value="VII,VIII">Middle Pool — Class VII + VIII</option>
+          <option value="V,VI">Junior Pool — Class V + VI</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-secondary" id="slot-modal-cancel">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="slot-modal-delete" style="margin-right:auto;">Delete Slot</button>
+      <button class="btn btn-primary" id="slot-modal-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Teacher Edit Modal ── -->
+<div class="modal-overlay" id="teacher-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="teacher-modal-title">Edit Teacher</span>
+      <button class="modal-close" id="teacher-modal-close">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="t-initials">Initials <span>*</span></label>
+      <input class="sfs-input" id="t-initials" placeholder="e.g. MP" style="width:100%;" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="t-fullname">Full Name <span>*</span></label>
+      <input class="sfs-input" id="t-fullname" placeholder="e.g. Michael Pamthet" style="width:100%;" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="t-staffid">Staff ID</label>
+      <input class="sfs-input" id="t-staffid" placeholder="e.g. SFST007 (leave blank if pending)" style="width:100%;" />
+    </div>
+    <div class="form-group" style="display:flex; align-items:center; gap:0.75rem;">
+      <input type="checkbox" id="t-parttime" style="width:16px; height:16px; accent-color:var(--gold-400);" />
+      <label for="t-parttime" style="font-size:0.875rem; color:var(--text-secondary); cursor:pointer;">Part-time teacher</label>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" id="teacher-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="teacher-modal-save">Save Teacher</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Subject Edit Modal ── -->
+<div class="modal-overlay" id="subject-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="subject-modal-title">Edit Subject</span>
+      <button class="modal-close" id="subject-modal-close">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="s-code">Subject Code <span>*</span></label>
+      <input class="sfs-input" id="s-code" type="number" placeholder="e.g. 16" style="width:100%;" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="s-name">Subject Name <span>*</span></label>
+      <input class="sfs-input" id="s-name" placeholder="e.g. Geography" style="width:100%;" />
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" id="subject-modal-cancel">Cancel</button>
+      <button class="btn btn-primary" id="subject-modal-save">Save Subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── JS Entry Point ── -->
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
