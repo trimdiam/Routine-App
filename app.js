@@ -1,17 +1,22 @@
 // app.js — SFS Routine App — Main Entry Point
 
+import { db, auth } from './firebase.js';
 import { listenCurrentDay, listenPeriodTimings } from './db.js';
-import { initClassView, setClassViewDay, updateClassViewTimings, invalidateClassCache } from './views/classView.js';
-import { initTeacherView, setTeacherViewDay, updateTeacherViewTimings, invalidateTeacherCache } from './views/teacherView.js';
-import { initMasterView, setMasterViewDay, renderMasterIfActive, invalidateMasterCache } from './views/masterView.js';
+import { initClassView, setClassViewDay, updateClassViewTimings } from './views/classView.js';
+import { initTeacherView, setTeacherViewDay, updateTeacherViewTimings } from './views/teacherView.js';
+import { initMasterView, setMasterViewDay, renderMasterIfActive } from './views/masterView.js';
 import { initAdmin } from './admin.js';
 
-// ── Change this to the real admin password before deployment ──
-const ADMIN_PASSWORD = 'sfs@admin2024';
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
-let currentDay = 1;
 let dayUnsubscribe = null;
 let timingsUnsubscribe = null;
+let adminInitialised = false;
 
 // ══════════════════════════════════════════════════════
 // NAVIGATION
@@ -27,32 +32,19 @@ function showSection(id) {
   const btn = document.querySelector(`.header-nav-btn[data-section="${id}"]`);
   if (btn) btn.classList.add('active');
 
-  // Close mobile nav
   document.getElementById('header-nav').classList.remove('open');
 
-  // Trigger master view render when switching to it (lazy)
   if (id === 'master') renderMasterIfActive();
 }
 
 // ══════════════════════════════════════════════════════
-// AUTH — simple session-stored password gate
+// AUTH
 // ══════════════════════════════════════════════════════
-
-function isAdminUnlocked() {
-  return sessionStorage.getItem('sfs_admin') === '1';
-}
-
-function unlockAdmin() {
-  sessionStorage.setItem('sfs_admin', '1');
-}
-
-function lockAdmin() {
-  sessionStorage.removeItem('sfs_admin');
-}
 
 function showLoginScreen() {
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
   document.getElementById('login-password').value = '';
   document.getElementById('login-error').textContent = '';
 }
@@ -62,17 +54,57 @@ function showApp() {
   document.getElementById('app').style.display = 'flex';
 }
 
-function handleLogin() {
-  const pw = document.getElementById('login-password').value;
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
   const err = document.getElementById('login-error');
-  if (pw === ADMIN_PASSWORD) {
-    unlockAdmin();
+  const btn = document.getElementById('login-btn');
+
+  if (!email || !password) {
+    err.textContent = 'Please enter your email and password.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  err.textContent = '';
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+
+    // Check role in Firestore
+    const userSnap = await getDoc(doc(db, 'users', cred.user.uid));
+    const role = userSnap.exists() ? userSnap.data().role : null;
+
+    if (role !== 'admin') {
+      await signOut(auth);
+      err.textContent = 'Access denied. Admin accounts only.';
+      return;
+    }
+
     showApp();
     showSection('admin');
-    err.textContent = '';
-  } else {
-    err.textContent = 'Incorrect password. Please try again.';
-    document.getElementById('login-password').value = '';
+  } catch (e) {
+    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+      err.textContent = 'Incorrect email or password.';
+    } else if (e.code === 'auth/too-many-requests') {
+      err.textContent = 'Too many attempts. Try again later.';
+    } else {
+      err.textContent = `Sign-in failed: ${e.message}`;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+  }
+}
+
+async function handleLogout() {
+  try {
+    await signOut(auth);
+    showSection('class');
+    showToast('Signed out.', 'info');
+  } catch (e) {
+    showToast('Sign-out failed.', 'error');
   }
 }
 
@@ -86,7 +118,6 @@ function showToast(message, type = 'info') {
   toast.className = `toast ${type}`;
   toast.textContent = message;
   container.appendChild(toast);
-  // CSS animation handles fadeIn; remove after 3 s
   setTimeout(() => toast.remove(), 3300);
 }
 
@@ -95,22 +126,23 @@ function showToast(message, type = 'info') {
 // ══════════════════════════════════════════════════════
 
 async function init() {
-  // Show app shell immediately
   showApp();
   showSection('class');
 
-  // ── Navigation buttons ──
+  // ── Navigation ──
   document.querySelectorAll('.header-nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.section;
       if (id === 'admin') {
-        if (!isAdminUnlocked()) { showLoginScreen(); return; }
+        if (!auth.currentUser) { showLoginScreen(); return; }
+        showSection('admin');
+        return;
       }
       showSection(id);
     });
   });
 
-  // ── Mobile hamburger ──
+  // ── Mobile menu ──
   document.getElementById('mobile-menu-btn').addEventListener('click', () => {
     document.getElementById('header-nav').classList.toggle('open');
   });
@@ -120,43 +152,55 @@ async function init() {
   document.getElementById('login-password').addEventListener('keydown', e => {
     if (e.key === 'Enter') handleLogin();
   });
+  document.getElementById('login-email').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-password').focus();
+  });
   document.getElementById('login-back-btn').addEventListener('click', () => {
     showApp();
     showSection('class');
   });
 
   // ── Admin logout ──
-  document.getElementById('admin-logout-btn').addEventListener('click', () => {
-    lockAdmin();
-    showSection('class');
-    showToast('Admin panel locked.', 'info');
+  document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
+
+  // ── Auth state — auto-show admin if already signed in ──
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      const userSnap = await getDoc(doc(db, 'users', user.uid));
+      const role = userSnap.exists() ? userSnap.data().role : null;
+      if (role === 'admin' && !adminInitialised) {
+        adminInitialised = true;
+        initAdmin(showToast, showSection);
+      }
+    } else {
+      adminInitialised = false;
+    }
   });
 
-  // ── Listen to current school day (real-time) ──
+  // ── Real-time day listener ──
   dayUnsubscribe = listenCurrentDay(data => {
-    currentDay = data.currentDay;
     document.getElementById('header-day-badge').textContent = `Day ${data.currentDay}`;
     setClassViewDay(data.currentDay);
     setTeacherViewDay(data.currentDay);
     setMasterViewDay(data.currentDay);
   });
 
-  // ── Listen to period timings (real-time) ──
+  // ── Real-time timings listener ──
   timingsUnsubscribe = listenPeriodTimings(timings => {
     updateClassViewTimings(timings);
     updateTeacherViewTimings(timings);
   });
 
-  // ── Initialise views ──
+  // ── Initialise display views ──
   initClassView(showToast);
-  await initTeacherView(showToast);   // async: populates teacher dropdown
+  await initTeacherView(showToast);
   initMasterView();
-  initAdmin(showToast, showSection);
 }
 
 init().catch(err => {
   console.error('App init failed:', err);
-  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#f87171;font-family:sans-serif;text-align:center;padding:2rem;">
+  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;
+    min-height:100vh;color:#f87171;font-family:sans-serif;text-align:center;padding:2rem;">
     <div>
       <p style="font-size:1.25rem;margin-bottom:0.5rem">Failed to initialise app</p>
       <p style="font-size:0.875rem;opacity:0.7">${err.message}</p>
