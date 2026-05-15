@@ -5,7 +5,8 @@ import {
   getPeriodTimings, setPeriodTimings,
   getAllTeachers, upsertTeacher,
   getAllSubjects, upsertSubject,
-  getRoutineForDay, upsertSlot, deleteSlot
+  getRoutineForDay, upsertSlot, deleteSlot,
+  getAllTeacherUsers, setUserTeacherInitials
 } from './db.js';
 import { runSeed } from './seed.js';
 
@@ -31,6 +32,7 @@ export function initAdmin(toastFn, sectionFn) {
   initTeacherPanel();
   initSubjectPanel();
   initRoutineEditor();
+  initLinkAccountsPanel();
   initSeedPanel();
   initModals();
 }
@@ -53,6 +55,7 @@ function initAdminTabs() {
       if (tabId === 'teachers') loadTeachers();
       if (tabId === 'subjects') loadSubjects();
       if (tabId === 'timings') loadTimings();
+      if (tabId === 'link') loadLinkAccounts();
     });
   });
 }
@@ -595,6 +598,87 @@ async function saveSlot() {
   } catch (e) {
     showToast('Failed to save slot.', 'error');
     console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// LINK ACCOUNTS — bind portal user UIDs to teacher initials
+// ══════════════════════════════════════════════════════
+
+function initLinkAccountsPanel() {
+  const refreshBtn = document.getElementById('link-refresh-btn');
+  if (refreshBtn) refreshBtn.addEventListener('click', loadLinkAccounts);
+}
+
+async function loadLinkAccounts() {
+  const tbody = document.getElementById('link-accounts-tbody');
+  const status = document.getElementById('link-accounts-status');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="4" style="padding:1rem; text-align:center; color:var(--text-muted);">Loading…</td></tr>';
+  status.textContent = '';
+
+  try {
+    const [users, teachers] = await Promise.all([getAllTeacherUsers(), getAllTeachers()]);
+    if (!users.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="padding:1rem; text-align:center; color:var(--text-muted);">No users found with role="teacher".</td></tr>';
+      return;
+    }
+
+    // Build dropdown options from teacher initials
+    const opts = teachers
+      .slice()
+      .sort((a, b) => a.initials.localeCompare(b.initials))
+      .map(t => `<option value="${t.initials}">${t.initials} — ${t.fullName || ''}</option>`)
+      .join('');
+
+    tbody.innerHTML = users.map(u => {
+      const cur = u.teacherInitials || '';
+      return `
+        <tr data-uid="${u.uid}">
+          <td style="padding:0.6rem; font-size:0.82rem;">${u.fullName || u.displayName || '<i style="opacity:0.5">no name</i>'}</td>
+          <td style="padding:0.6rem; font-size:0.82rem; color:var(--text-secondary);">${u.email || '<i style="opacity:0.5">—</i>'}</td>
+          <td style="padding:0.6rem;">
+            <select class="sfs-input link-initials-select" style="width:100%; min-width:140px;">
+              <option value="">— unlinked —</option>
+              ${opts}
+            </select>
+          </td>
+          <td style="padding:0.6rem;">
+            <button class="btn btn-primary btn-sm link-save-btn">Save</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Set current values + bind save
+    tbody.querySelectorAll('tr[data-uid]').forEach(row => {
+      const uid = row.dataset.uid;
+      const user = users.find(u => u.uid === uid);
+      const select = row.querySelector('.link-initials-select');
+      select.value = user.teacherInitials || '';
+      row.querySelector('.link-save-btn').addEventListener('click', async () => {
+        const initials = select.value;
+        const btn = row.querySelector('.link-save-btn');
+        btn.disabled = true;
+        btn.textContent = 'Saving…';
+        try {
+          await setUserTeacherInitials(uid, initials || null);
+          showToast(`Linked ${user.email || uid} → ${initials || 'unlinked'}`, 'success');
+        } catch (e) {
+          console.error(e);
+          showToast(`Failed: ${e.message}`, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Save';
+        }
+      });
+    });
+
+    status.textContent = `${users.length} teacher account${users.length === 1 ? '' : 's'} loaded.`;
+  } catch (e) {
+    console.error(e);
+    tbody.innerHTML = `<tr><td colspan="4" style="padding:1rem; text-align:center; color:var(--error);">Failed to load: ${e.message}</td></tr>`;
   }
 }
 

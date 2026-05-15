@@ -3,7 +3,7 @@
 import { db } from './firebase.js';
 import {
   doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
-  collection, query, orderBy, onSnapshot, serverTimestamp
+  collection, collectionGroup, query, where, orderBy, onSnapshot, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
 // ─────────────────────────────────────────────
@@ -206,4 +206,53 @@ export function getActivePeriodIndex(timings) {
     if (currentMinutes >= startMin && currentMinutes < endMin) return i - 1;
   }
   return -1;
+}
+
+// ─────────────────────────────────────────────
+// USER ↔ TEACHER LINKING (portal integration)
+// ─────────────────────────────────────────────
+
+/** Read a single /users/{uid} document. Returns data or null. */
+export async function getUserDoc(uid) {
+  const snap = await getDoc(doc(db, 'users', uid));
+  return snap.exists() ? snap.data() : null;
+}
+
+/** Write the teacherInitials field on a user doc (admin action). */
+export async function setUserTeacherInitials(uid, initials) {
+  await setDoc(doc(db, 'users', uid), { teacherInitials: initials }, { merge: true });
+}
+
+/**
+ * List all users with role === 'teacher'.
+ * Returns array of { uid, ...userData }.
+ * Requires admin rule (current rules allow admin to read all users).
+ */
+export async function getAllTeacherUsers() {
+  const q = query(collection(db, 'users'), where('role', '==', 'teacher'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+}
+
+/**
+ * Fetch the full 7-day schedule for a given teacher (by initials).
+ * Uses a collectionGroup query across all /routine/{day}/periods/{period}/slots.
+ * Returns: { 1: { 1: slot, 2: slot, ... }, 2: {...}, ... 7: {...} }
+ *
+ * Requires composite index: collection group "slots", field teacherInitials Asc.
+ * Firebase will print an auto-create link in console on first run.
+ */
+export async function getTeacherScheduleByInitials(initials) {
+  const q = query(collectionGroup(db, 'slots'), where('teacherInitials', '==', initials));
+  const snap = await getDocs(q);
+  const schedule = {};
+  for (let d = 1; d <= 7; d++) schedule[d] = {};
+  snap.forEach(s => {
+    // path: routine/{day}/periods/{period}/slots/{slotId}
+    const parts = s.ref.path.split('/');
+    const day = parseInt(parts[1], 10);
+    const period = parseInt(parts[3], 10);
+    if (schedule[day]) schedule[day][period] = { id: s.id, ...s.data() };
+  });
+  return schedule;
 }

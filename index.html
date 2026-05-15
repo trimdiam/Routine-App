@@ -71,6 +71,9 @@
       <button class="header-nav-btn" data-section="master">
         📊 Full Day
       </button>
+      <button class="header-nav-btn" id="my-schedule-nav-btn" data-section="my-schedule" style="display:none;">
+        🗓️ My Schedule
+      </button>
       <button class="header-nav-btn" id="admin-nav-btn" data-section="admin">
         ⚙️ Admin
       </button>
@@ -241,6 +244,32 @@
     </section>
 
     <!-- ══════════════════════════════════════
+         SECTION: My Schedule (signed-in teacher)
+    ══════════════════════════════════════ -->
+    <section class="page-section" id="section-my-schedule">
+      <div class="section-header">
+        <h2>My Schedule</h2>
+        <p id="my-schedule-subtitle">Your full 7-day teaching routine.</p>
+      </div>
+
+      <div class="glass-card">
+        <div class="glass-card-header">
+          <div class="glass-card-title">
+            <div class="icon">🗓️</div>
+            <h3 id="my-schedule-title">Loading…</h3>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="my-schedule-print-btn">🖨️ Print</button>
+        </div>
+        <div id="my-schedule-body">
+          <div class="empty-state">
+            <div class="empty-icon">🗓️</div>
+            <p>Loading your schedule…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════
          SECTION: Admin Panel
     ══════════════════════════════════════ -->
     <section class="page-section" id="section-admin">
@@ -256,6 +285,7 @@
         <button class="admin-tab" data-admin-tab="teachers">👥 Teachers</button>
         <button class="admin-tab" data-admin-tab="subjects">📚 Subjects</button>
         <button class="admin-tab" data-admin-tab="routine">📝 Routine Editor</button>
+        <button class="admin-tab" data-admin-tab="link">🔗 Link Accounts</button>
         <button class="admin-tab" data-admin-tab="seed">🌱 Seed DB</button>
       </div>
 
@@ -369,6 +399,38 @@
               <p>Select a class above to edit its routine.</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── Admin: Link Accounts ── -->
+      <div class="admin-tab-panel" id="admin-panel-link" style="display:none;">
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <div class="glass-card-title">
+              <div class="icon">🔗</div>
+              <h3>Link Portal Accounts to Teachers</h3>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="link-refresh-btn">↻ Refresh</button>
+          </div>
+          <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:1rem;">
+            Pick a teacher's initials for each portal user with <code>role: 'teacher'</code>.
+            Once linked, that teacher will see their personal schedule on the
+            <strong>My Schedule</strong> page (and in the main school portal).
+          </p>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse;">
+              <thead>
+                <tr style="background:rgba(255,255,255,0.04); text-align:left;">
+                  <th style="padding:0.6rem; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">Name</th>
+                  <th style="padding:0.6rem; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">Email</th>
+                  <th style="padding:0.6rem; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);">Teacher Initials</th>
+                  <th style="padding:0.6rem; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted);"></th>
+                </tr>
+              </thead>
+              <tbody id="link-accounts-tbody"></tbody>
+            </table>
+          </div>
+          <div id="link-accounts-status" style="margin-top:0.75rem; font-size:0.78rem; color:var(--text-muted);"></div>
         </div>
       </div>
 

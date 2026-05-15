@@ -5,6 +5,7 @@ import { listenCurrentDay, listenPeriodTimings } from './db.js';
 import { initClassView, setClassViewDay, updateClassViewTimings } from './views/classView.js';
 import { initTeacherView, setTeacherViewDay, updateTeacherViewTimings } from './views/teacherView.js';
 import { initMasterView, setMasterViewDay, renderMasterIfActive } from './views/masterView.js';
+import { initMyScheduleView, renderMySchedule } from './views/myScheduleView.js';
 import { initAdmin } from './admin.js';
 
 import {
@@ -76,14 +77,14 @@ async function handleLogin() {
     const userSnap = await getDoc(doc(db, 'users', cred.user.uid));
     const role = userSnap.exists() ? userSnap.data().role : null;
 
-    if (role !== 'admin') {
+    if (role !== 'admin' && role !== 'teacher') {
       await signOut(auth);
-      err.textContent = 'Access denied. Admin accounts only.';
+      err.textContent = 'Access denied. Admin or teacher account required.';
       return;
     }
 
     showApp();
-    showSection('admin');
+    showSection(role === 'admin' ? 'admin' : 'my-schedule');
   } catch (e) {
     if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
       err.textContent = 'Incorrect email or password.';
@@ -133,9 +134,10 @@ async function init() {
   document.querySelectorAll('.header-nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.section;
-      if (id === 'admin') {
+      if (id === 'admin' || id === 'my-schedule') {
         if (!auth.currentUser) { showLoginScreen(); return; }
-        showSection('admin');
+        showSection(id);
+        if (id === 'my-schedule') renderMySchedule(auth.currentUser);
         return;
       }
       showSection(id);
@@ -163,7 +165,9 @@ async function init() {
   // ── Admin logout ──
   document.getElementById('admin-logout-btn').addEventListener('click', handleLogout);
 
-  // ── Auth state — auto-show admin if already signed in ──
+  // ── Auth state — show My Schedule / Admin nav based on role ──
+  const adminNavBtn = document.getElementById('admin-nav-btn');
+  const myScheduleNavBtn = document.getElementById('my-schedule-nav-btn');
   onAuthStateChanged(auth, async user => {
     if (user) {
       const userSnap = await getDoc(doc(db, 'users', user.uid));
@@ -172,8 +176,13 @@ async function init() {
         adminInitialised = true;
         initAdmin(showToast, showSection);
       }
+      // Show My Schedule nav for any signed-in teacher or admin
+      if (myScheduleNavBtn && (role === 'teacher' || role === 'admin')) {
+        myScheduleNavBtn.style.display = '';
+      }
     } else {
       adminInitialised = false;
+      if (myScheduleNavBtn) myScheduleNavBtn.style.display = 'none';
     }
   });
 
@@ -195,6 +204,7 @@ async function init() {
   initClassView(showToast);
   await initTeacherView(showToast);
   initMasterView();
+  initMyScheduleView();
 }
 
 init().catch(err => {
