@@ -171,6 +171,7 @@ async function init() {
       if (role === 'admin' && !adminInitialised) {
         adminInitialised = true;
         initAdmin(showToast, showSection);
+        showSection('admin');
       }
     } else {
       adminInitialised = false;

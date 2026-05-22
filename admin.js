@@ -7,7 +7,8 @@ import {
   getAllSubjects, upsertSubject,
   getRoutineForDay, upsertSlot, deleteSlot
 } from './db.js';
-import { runSeed } from './seed.js';
+// seed.js is a dev-only script and is not deployed to production
+const runSeed = () => Promise.reject(new Error('Seed script is not available in production. Run seed.js locally.'));
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const CLASSES = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
