@@ -7,8 +7,7 @@ import {
   getAllSubjects, upsertSubject,
   getRoutineForDay, upsertSlot, deleteSlot
 } from './db.js';
-// seed.js is a dev-only script and is not deployed to production
-const runSeed = () => Promise.reject(new Error('Seed script is not available in production. Run seed.js locally.'));
+// seed.js loaded lazily on demand — not deployed to hosting
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
 const CLASSES = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
@@ -617,6 +616,7 @@ async function runSeedFromAdmin() {
   progress.innerHTML = '<div style="color:var(--text-secondary)">🌱 Seeding database — this may take a minute…</div>';
 
   try {
+    const { runSeed } = await import('./seed.js');
     await runSeed();
     progress.innerHTML += '<div style="color:var(--success)">🎉 Database seeded successfully! Check browser console for details.</div>';
     showToast('Database seeded!', 'success');
