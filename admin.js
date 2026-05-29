@@ -61,7 +61,32 @@ function initAdminTabs() {
 // DAY CONTROL
 // ══════════════════════════════════════════════════════
 
+function isWeekend() {
+  const day = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+  return day === 0 || day === 6;
+}
+
 function initDayControl() {
+  // Show weekend notice and disable controls if today is Saturday or Sunday
+  if (isWeekend()) {
+    const dayName = new Date().getDay() === 0 ? 'Sunday' : 'Saturday';
+    const notice = document.createElement('div');
+    notice.id = 'admin-weekend-notice';
+    notice.style.cssText = 'background:var(--warning,#f59e0b);color:#1a1a1a;border-radius:8px;padding:0.6rem 1rem;font-size:0.85rem;font-weight:600;margin-bottom:0.75rem;';
+    notice.textContent = `Weekend (${dayName}) — Day changes are disabled. No school today.`;
+
+    const panel = document.getElementById('admin-panel-day');
+    if (panel) panel.insertBefore(notice, panel.firstChild);
+
+    document.getElementById('admin-advance-day').disabled = true;
+    document.querySelectorAll('#admin-day-set-pills .day-pill').forEach(p => {
+      p.disabled = true;
+      p.style.opacity = '0.4';
+      p.style.cursor = 'not-allowed';
+      p.style.pointerEvents = 'none';
+    });
+  }
+
   // Listen to real-time day changes
   dayUnsubscribe = listenCurrentDay(data => {
     currentAdminDay = data.currentDay;
@@ -80,6 +105,7 @@ function initDayControl() {
   });
 
   document.getElementById('admin-advance-day').addEventListener('click', async () => {
+    if (isWeekend()) { showToast('Cannot advance day on weekends.', 'error'); return; }
     const next = currentAdminDay >= 7 ? 1 : currentAdminDay + 1;
     try {
       await setCurrentDay(next);
@@ -97,6 +123,7 @@ function initDayControl() {
 
   document.querySelectorAll('#admin-day-set-pills .day-pill').forEach(pill => {
     pill.addEventListener('click', async () => {
+      if (isWeekend()) { showToast('Cannot set day on weekends.', 'error'); return; }
       const day = parseInt(pill.dataset.day, 10);
       try {
         await setCurrentDay(day);
